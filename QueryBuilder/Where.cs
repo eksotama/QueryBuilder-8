@@ -71,6 +71,11 @@ namespace QueryBuilder
             return new Where<T>($"{fromPart} {connector} ({clause})", otherCondition, "AND");
         }
 
+        public Where<T> Or(Expression<Func<T, object>> otherCondition)
+        {
+            return new Where<T>($"{fromPart} {connector} ({clause})", otherCondition, "OR");
+        }
+
         public override string ToString()
         {
             return $"{fromPart} {connector} {clause}";
