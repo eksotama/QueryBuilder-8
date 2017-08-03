@@ -99,5 +99,13 @@ namespace QueryBuilder.Tests
 
             Assert.Equal(complete, where.ToString());
         }
+
+        [Fact]
+        public void SimpleWhereClauseComparingStringShouldPutStringInQuotes()
+        {
+            var where = new Select<DataSource>(s => s.Text).Where(s => s.Text == "abc");
+
+            Assert.Equal("SELECT Text FROM DataSourceTable WHERE Text = 'abc'", where.ToString());
+        }
     }
 }

@@ -45,7 +45,15 @@ namespace QueryBuilder
                     }
                     if(binary.Right is ConstantExpression constant)
                     {
-                        clause += constant.Value;
+                        var value = constant.Value;
+                        if(value.GetType() == typeof(string))
+                        {
+                            clause += $"'{value}'";
+                        }
+                        else
+                        {
+                            clause += value;
+                        }
                     }
                 }
             }
