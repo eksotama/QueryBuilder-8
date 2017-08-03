@@ -5,21 +5,23 @@ namespace QueryBuilder
 {
     public class Where<T>
     {
-        private From<T> from;
+        private string fromPart = "";
         private string clause = "";
+        private string connector = "";
 
-        public Where(From<T> from, Expression<Func<T, object>> where)
+        private Where(string from, Expression<Func<T, object>> where, string connector = null)
         {
-            this.from = from;
-            if(where.Body is UnaryExpression unary)
+            fromPart = from;
+            this.connector = connector ?? "WHERE";
+            if (where.Body is UnaryExpression unary)
             {
-                if(unary.Operand is BinaryExpression binary)
+                if (unary.Operand is BinaryExpression binary)
                 {
-                    if(binary.Left is MemberExpression left)
+                    if (binary.Left is MemberExpression left)
                     {
                         clause += left.Member.Name;
                     }
-                    switch(binary.NodeType)
+                    switch (binary.NodeType)
                     {
                         case ExpressionType.Equal:
                             clause += " = ";
@@ -43,10 +45,10 @@ namespace QueryBuilder
                             clause += " ";
                             break;
                     }
-                    if(binary.Right is ConstantExpression constant)
+                    if (binary.Right is ConstantExpression constant)
                     {
                         var value = constant.Value;
-                        if(value.GetType() == typeof(string))
+                        if (value.GetType() == typeof(string))
                         {
                             clause += $"'{value}'";
                         }
@@ -59,9 +61,19 @@ namespace QueryBuilder
             }
         }
 
+        public Where(From<T> from, Expression<Func<T, object>> where)
+            :this(from.ToString(), where)
+        {
+        }
+
+        public Where<T> And(Expression<Func<T, object>> otherCondition)
+        {
+            return new Where<T>($"{fromPart} {connector} ({clause})", otherCondition, "AND");
+        }
+
         public override string ToString()
         {
-            return $"{from} WHERE {clause}";
+            return $"{fromPart} {connector} {clause}";
         }
     }
 }

@@ -107,5 +107,15 @@ namespace QueryBuilder.Tests
 
             Assert.Equal("SELECT Text FROM DataSourceTable WHERE Text = 'abc'", where.ToString());
         }
+
+        [Fact]
+        public void TwoWhereConditionsConnectedViaANDShouldBePutInParenthesis()
+        {
+            var where = new Select<DataSource>(s => s.Text)
+                .Where(s => s.Text != "abc")
+                .And(s => s.Text != "dce");
+
+            Assert.Equal("SELECT Text FROM DataSourceTable WHERE (Text != 'abc') AND Text != 'dce'", where.ToString());
+        }
     }
 }
