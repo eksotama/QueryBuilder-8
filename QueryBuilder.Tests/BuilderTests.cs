@@ -140,5 +140,17 @@ namespace QueryBuilder.Tests
             var expected = "SELECT Text FROM DataSourceTable WHERE (Value > 10) OR Text = 'abc'";
             Assert.Equal(expected, where.ToString());
         }
+
+        [Fact]
+        public void ThreeWhereConditionsLinkedWithORShouldHaveCorrectParenthesis()
+        {
+            var where = new Select<DataSource>(s => s.Text)
+                .Where(s => s.Text != "abc")
+                .Or(s => s.Value < 5)
+                .Or(s => s.Value <= 10);
+
+            var expected = "SELECT Text FROM DataSourceTable WHERE (Text != 'abc') OR (Value < 5) OR Value <= 10";
+            Assert.Equal(expected, where.ToString());
+        }
     }
 }
