@@ -28,6 +28,8 @@ namespace QueryBuilder.Tests
                 case "value<5": return (s) => s.Value < 5;
                 case "value<=5": return (s) => s.Value <= 5;
                 case "value!=5": return (s) => s.Value != 5;
+                case "textnotnull": return (s) => s.Text != null;
+                case "textisnull": return (s) => s.Text == null;
             }
             throw new ArgumentException("unknown func!");
         }
@@ -151,6 +153,18 @@ namespace QueryBuilder.Tests
 
             var expected = "SELECT Text FROM DataSourceTable WHERE (Text != 'abc') OR (Value < 5) OR Value <= 10";
             Assert.Equal(expected, where.ToString());
+        }
+
+        [Theory]
+        [InlineData("textnotnull", "Text IS NOT NULL")]
+        [InlineData("textisnull", "Text IS NULL")]
+        public void WhereConditionWithNullShouldPrintNULL(string funcName, string expectedEnd)
+        {
+            var condition = FuncProvider(funcName);
+            var where = new Select<DataSource>(c => c.Text)
+                .Where(condition);
+
+            Assert.True(where.ToString().EndsWith(expectedEnd), $"expected: {expectedEnd}, actual: {where.ToString()}");
         }
     }
 }

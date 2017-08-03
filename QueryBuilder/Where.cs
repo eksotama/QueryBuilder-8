@@ -48,7 +48,19 @@ namespace QueryBuilder
                     if (binary.Right is ConstantExpression constant)
                     {
                         var value = constant.Value;
-                        if (value.GetType() == typeof(string))
+                        if(value == null)
+                        {
+                            clause = clause.Split(' ')[0];
+                            if(binary.NodeType == ExpressionType.NotEqual)
+                            {
+                                clause += " IS NOT NULL";
+                            }
+                            else if(binary.NodeType == ExpressionType.Equal)
+                            {
+                                clause += " IS NULL";
+                            }
+                        }
+                        else if (value.GetType() == typeof(string))
                         {
                             clause += $"'{value}'";
                         }
