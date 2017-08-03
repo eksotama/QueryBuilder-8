@@ -11,10 +11,43 @@ namespace QueryBuilder
         public Where(From<T> from, Expression<Func<T, object>> where)
         {
             this.from = from;
-
-            if(where.Body is MemberExpression body)
+            if(where.Body is UnaryExpression unary)
             {
-                
+                if(unary.Operand is BinaryExpression binary)
+                {
+                    if(binary.Left is MemberExpression left)
+                    {
+                        clause += left.Member.Name;
+                    }
+                    switch(binary.NodeType)
+                    {
+                        case ExpressionType.Equal:
+                            clause += " = ";
+                            break;
+                        case ExpressionType.GreaterThan:
+                            clause += " > ";
+                            break;
+                        case ExpressionType.GreaterThanOrEqual:
+                            clause += " >= ";
+                            break;
+                        case ExpressionType.LessThan:
+                            clause += " < ";
+                            break;
+                        case ExpressionType.LessThanOrEqual:
+                            clause += " <= ";
+                            break;
+                        case ExpressionType.NotEqual:
+                            clause += " != ";
+                            break;
+                        default:
+                            clause += " ";
+                            break;
+                    }
+                    if(binary.Right is ConstantExpression constant)
+                    {
+                        clause += constant.Value;
+                    }
+                }
             }
         }
 

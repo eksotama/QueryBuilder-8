@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq.Expressions;
 using Xunit;
 
 namespace QueryBuilder.Tests
@@ -14,6 +15,21 @@ namespace QueryBuilder.Tests
         public class DataSource : IDataSource
         {
             public string Text { get; set; }
+            public int Value { get; set; }
+        }
+
+        private static Expression<Func<DataSource, object>> FuncProvider(string funcName)
+        {
+            switch (funcName)
+            {
+                case "value=5": return (s) => s.Value == 5;
+                case "value>5": return (s) => s.Value > 5;
+                case "value>=5": return (s) => s.Value >= 5;
+                case "value<5": return (s) => s.Value < 5;
+                case "value<=5": return (s) => s.Value <= 5;
+                case "value!=5": return (s) => s.Value != 5;
+            }
+            throw new ArgumentException("unknown func!");
         }
 
         [Fact]
@@ -28,6 +44,8 @@ namespace QueryBuilder.Tests
         public void SelectWithPropertyShouldReturnCorrectSelectPart()
         {
             var select = new Select<DataClass>(c => c.Text);
+
+            var from = new Select<DataClass>(c => c.Text).Where(c => c.Text != "hallo");
 
             Assert.Equal("SELECT Text", select.ToString());
         }
@@ -65,12 +83,21 @@ namespace QueryBuilder.Tests
             Assert.Equal("SELECT Text FROM DataClass", from.ToString());
         }
 
-        [Fact]
-        public void SimpleWhereClauseShouldWriteCorrectWhereString()
+        [Theory]
+        [InlineData("value=5" , "WHERE Value = 5")]
+        [InlineData("value>5" , "WHERE Value > 5")]
+        [InlineData("value>=5", "WHERE Value >= 5")]
+        [InlineData("value<5" , "WHERE Value < 5")]
+        [InlineData("value<=5", "WHERE Value <= 5")]
+        [InlineData("value!=5", "WHERE Value != 5")]
+        public void SimpleWhereClauseShouldWriteCorrectWhereString(string func, string expected)
         {
-            var where = new Select<DataSource>(s => s.Text).Where(s => s.Text == "abc");
+            var whereFunc = FuncProvider(func);
+            var where = new Select<DataSource>(s => s.Text).Where(whereFunc);
+            var firstPart = "SELECT Text FROM DataSourceTable ";
+            var complete = firstPart + expected;
 
-            Assert.Equal("SELECT Text FROM DataSourceTable WHERE Text = 'abc'", where.ToString());
+            Assert.Equal(complete, where.ToString());
         }
     }
 }
