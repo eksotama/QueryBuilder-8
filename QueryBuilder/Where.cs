@@ -111,6 +111,19 @@ namespace QueryBuilder
             return this;
         }
 
+        public Where<T> NotIn<TValue>(IEnumerable<TValue> values)
+        {
+            if (typeof(TValue) == typeof(string))
+            {
+                clause += $" NOT IN ({string.Join(",", values.Select(v => $"'{v}'"))})";
+            }
+            else
+            {
+                clause += $" NOT IN ({string.Join(",", values)})";
+            }
+            return this;
+        }
+
         public override string ToString()
         {
             return $"{fromPart} {connector} {clause}";
