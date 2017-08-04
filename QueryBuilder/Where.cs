@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace QueryBuilder
@@ -13,9 +15,17 @@ namespace QueryBuilder
         {
             fromPart = from;
             this.connector = connector ?? "WHERE";
-            if (where.Body is UnaryExpression unary)
+            if(where.Body is MemberExpression memberEx)
             {
-                if (unary.Operand is BinaryExpression binary)
+                clause += memberEx.Member.Name;
+            }
+            else if (where.Body is UnaryExpression unary)
+            {
+                if(unary.Operand is MemberExpression member)
+                {
+                    clause += member.Member.Name;
+                }
+                else if (unary.Operand is BinaryExpression binary)
                 {
                     if (binary.Left is MemberExpression left)
                     {
@@ -48,14 +58,14 @@ namespace QueryBuilder
                     if (binary.Right is ConstantExpression constant)
                     {
                         var value = constant.Value;
-                        if(value == null)
+                        if (value == null)
                         {
                             clause = clause.Split(' ')[0];
-                            if(binary.NodeType == ExpressionType.NotEqual)
+                            if (binary.NodeType == ExpressionType.NotEqual)
                             {
                                 clause += " IS NOT NULL";
                             }
-                            else if(binary.NodeType == ExpressionType.Equal)
+                            else if (binary.NodeType == ExpressionType.Equal)
                             {
                                 clause += " IS NULL";
                             }
@@ -74,7 +84,7 @@ namespace QueryBuilder
         }
 
         public Where(From<T> from, Expression<Func<T, object>> where)
-            :this(from.ToString(), where)
+            : this(from.ToString(), where)
         {
         }
 
@@ -86,6 +96,19 @@ namespace QueryBuilder
         public Where<T> Or(Expression<Func<T, object>> otherCondition)
         {
             return new Where<T>($"{fromPart} {connector} ({clause})", otherCondition, "OR");
+        }
+
+        public Where<T> In<TValue>(IEnumerable<TValue> values)
+        {
+            if (typeof(TValue) == typeof(string))
+            {
+                clause += $" IN ({string.Join(",", values.Select(v => $"'{v}'"))})";
+            }
+            else
+            {
+                clause += $" IN ({string.Join(",", values)})";
+            }
+            return this;
         }
 
         public override string ToString()

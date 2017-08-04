@@ -166,5 +166,25 @@ namespace QueryBuilder.Tests
 
             Assert.True(where.ToString().EndsWith(expectedEnd), $"expected: {expectedEnd}, actual: {where.ToString()}");
         }
+
+        [Fact]
+        public void WhereInConditionShouldSetCorrectParenthesis()
+        {
+            var where = new Select<DataSource>(c => c.Text)
+                .Where(c => c.Value)
+                .In(new[] { 1, 2, 3, 4, 5 });
+
+            Assert.Equal("SELECT Text FROM DataSourceTable WHERE Value IN (1,2,3,4,5)", where.ToString());
+        }
+
+        [Fact]
+        public void WhereInConditionWithStringsShouldQuoteStrings()
+        {
+            var where = new Select<DataSource>(c => c.Text)
+                .Where(c => c.Text)
+                .In(new[] { "a", "b", "c" });
+
+            Assert.Equal("SELECT Text FROM DataSourceTable WHERE Text IN ('a','b','c')", where.ToString());
+        }
     }
 }
