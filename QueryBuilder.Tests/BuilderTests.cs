@@ -16,6 +16,7 @@ namespace QueryBuilder.Tests
         {
             public string Text { get; set; }
             public int Value { get; set; }
+            public char Character { get; set; }
         }
 
         private static Expression<Func<DataSource, object>> FuncProvider(string funcName)
@@ -32,6 +33,7 @@ namespace QueryBuilder.Tests
                 case "textisnull": return (s) => s.Text == null;
                 case "text": return (s) => s.Text;
                 case "value": return (s) => s.Value;
+                case "char": return (s) => s.Character;
             }
             throw new ArgumentException("unknown func!");
         }
@@ -207,6 +209,38 @@ namespace QueryBuilder.Tests
                 .NotIn(new[] { "a", "b", "c" });
 
             Assert.Equal("SELECT Text FROM DataSourceTable WHERE Text NOT IN ('a','b','c')", where.ToString());
+        }
+
+        [Fact]
+        public void WhereWithLikeShouldAddLIKE()
+        {
+            var where = new Select<DataSource>(c => c.Text)
+                .Where(c => c.Text)
+                .Like("abc");
+
+            Assert.Equal("SELECT Text FROM DataSourceTable WHERE Text LIKE 'abc'", where.ToString());
+        }
+
+        [Fact]
+        public void UsingLikeWithNonStringMemberShouldThrow()
+        {
+            Assert.Throws<ArgumentException>(() => new Select<DataSource>(c => c.Text)
+                                                       .Where(c => c.Value)
+                                                       .Like("abc"));
+        }
+
+        [Theory]
+        [InlineData("text")]
+        [InlineData("char")]
+        public void UsingValidTypesForLikeShouldNotThrow(string funcName)
+        {
+            var func = FuncProvider(funcName);
+
+            var ex = Record.Exception(() => new Select<DataSource>(c => c.Text)
+                .Where(func)
+                .Like("abc"));
+
+            Assert.Null(ex);
         }
     }
 }

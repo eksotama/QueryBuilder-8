@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace QueryBuilder
 {
@@ -11,6 +12,8 @@ namespace QueryBuilder
         private string clause = "";
         private string connector = "";
 
+        Type valueType;
+
         private Where(string from, Expression<Func<T, object>> where, string connector = null)
         {
             fromPart = from;
@@ -18,12 +21,14 @@ namespace QueryBuilder
             if(where.Body is MemberExpression memberEx)
             {
                 clause += memberEx.Member.Name;
+                valueType = (memberEx.Member as PropertyInfo).PropertyType;
             }
             else if (where.Body is UnaryExpression unary)
             {
                 if(unary.Operand is MemberExpression member)
                 {
                     clause += member.Member.Name;
+                    valueType = (member.Member as PropertyInfo).PropertyType;
                 }
                 else if (unary.Operand is BinaryExpression binary)
                 {
@@ -121,6 +126,16 @@ namespace QueryBuilder
             {
                 clause += $" NOT IN ({string.Join(",", values)})";
             }
+            return this;
+        }
+
+        public Where<T> Like(string like)
+        {
+            if(valueType != typeof(string) && valueType != typeof(char))
+            {
+                throw new ArgumentException("like can only be used for strings!");
+            }
+            clause += $" LIKE '{like}'";
             return this;
         }
 
