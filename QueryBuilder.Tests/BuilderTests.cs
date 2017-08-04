@@ -30,6 +30,8 @@ namespace QueryBuilder.Tests
                 case "value!=5": return (s) => s.Value != 5;
                 case "textnotnull": return (s) => s.Text != null;
                 case "textisnull": return (s) => s.Text == null;
+                case "text": return (s) => s.Text;
+                case "value": return (s) => s.Value;
             }
             throw new ArgumentException("unknown func!");
         }
@@ -42,14 +44,14 @@ namespace QueryBuilder.Tests
             Assert.Equal("SELECT ", select.ToString());
         }
 
-        [Fact]
-        public void SelectWithPropertyShouldReturnCorrectSelectPart()
+        [Theory]
+        [InlineData("text", "SELECT Text")]
+        [InlineData("value", "SELECT Value")]
+        public void SelectWithPropertyShouldReturnCorrectSelectPart(string funcName, string expected)
         {
-            var select = new Select<DataClass>(c => c.Text);
-
-            var from = new Select<DataClass>(c => c.Text).Where(c => c.Text != "hallo");
-
-            Assert.Equal("SELECT Text", select.ToString());
+            var select = new Select<DataSource>(FuncProvider(funcName));
+            
+            Assert.Equal(expected, select.ToString());
         }
 
         [Fact]
@@ -185,6 +187,26 @@ namespace QueryBuilder.Tests
                 .In(new[] { "a", "b", "c" });
 
             Assert.Equal("SELECT Text FROM DataSourceTable WHERE Text IN ('a','b','c')", where.ToString());
+        }
+
+        [Fact]
+        public void WhereNotInConditionWithIntsShouldSetCorrectParenthesis()
+        {
+            var where = new Select<DataSource>(c => c.Text)
+                .Where(c => c.Value)
+                .NotIn(new[] { 1, 2, 3, 4, 5 });
+
+            Assert.Equal("SELECT Text FROM DataSourceTable WHERE Value NOT IN (1,2,3,4,5)", where.ToString());
+        }
+
+        [Fact]
+        public void WhereNotInConditionWithStringsShouldQuoteStrings()
+        {
+            var where = new Select<DataSource>(c => c.Text)
+                .Where(c => c.Text)
+                .NotIn(new[] { "a", "b", "c" });
+
+            Assert.Equal("SELECT Text FROM DataSourceTable WHERE Text NOT IN ('a','b','c')", where.ToString());
         }
     }
 }

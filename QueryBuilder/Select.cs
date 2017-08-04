@@ -17,6 +17,13 @@ namespace QueryBuilder
             {
                 clause += body.Member.Name;
             }
+            else if(select.Body is UnaryExpression unary)
+            {
+                if(unary.Operand is MemberExpression member)
+                {
+                    clause += member.Member.Name;
+                }
+            }
         }         
 
         public From<T> From(string table)
