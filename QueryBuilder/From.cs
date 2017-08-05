@@ -13,10 +13,10 @@ namespace QueryBuilder
             return $"{select.ToString()} FROM {clause}";
         }
 
-        public From(Select<T> select, string table)
+        public From(Select<T> select, string table, string prefix = "")
         {
             this.select = select;
-            this.clause = table;
+            this.clause = $"{prefix}{table}";
         }
 
         public Where<T> Where<TWhere>(Expression<Func<T, object>> where) where TWhere : T

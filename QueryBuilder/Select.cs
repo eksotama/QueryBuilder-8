@@ -31,16 +31,24 @@ namespace QueryBuilder
             return new From<T>(this, table);
         }
 
-        public From<T> From(Type classType)
+        public From<T> From(Type classType = null, string prefix = null)
         {
-            if(typeof(IDataSource).IsAssignableFrom(classType))
+            prefix = prefix ?? GetSourcePrefix(classType);
+            classType = classType ?? typeof(T);
+            if (typeof(IDataSource).IsAssignableFrom(classType))
             {
-                return From(Query.GetNameOfDataSourceType(classType));
+                return From($"{prefix}{Query.GetNameOfDataSourceType(classType)}");
             }
             else
             {
-                return From(classType.Name);
+                return From($"{prefix}{classType.Name}");
             }
+        }
+
+        private static string GetSourcePrefix(Type sourceType)
+        {
+            var prefix = sourceType.GetProperty("SourcePrefix")?.GetValue(null, null);
+            return prefix?.ToString() ?? "";
         }
 
         public Where<T> Where(Expression<Func<T, object>> where)

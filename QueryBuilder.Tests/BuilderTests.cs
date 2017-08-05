@@ -17,6 +17,15 @@ namespace QueryBuilder.Tests
             public string Text { get; set; }
             public int Value { get; set; }
             public char Character { get; set; }
+
+            public string GetPrefix() => "";
+        }
+
+        [DataSourceName("Prefixed")]
+        public class PrefixedSource : IDataSource
+        {
+            public string Text { get; set; }
+            public static string SourcePrefix => "dbo.";
         }
 
         private static Expression<Func<DataSource, object>> FuncProvider(string funcName)
@@ -273,6 +282,30 @@ namespace QueryBuilder.Tests
                 .And(c => c.Value < 5);
 
             Assert.Equal("(Text IN ('a','b','c')) AND Value < 5", where.ToString());
+        }
+
+        [Fact]
+        public void FromWithPrefixedSourceShouldPrependPrefixBeforeTableName()
+        {
+            var from = new Select<PrefixedSource>(p => p.Text).From(typeof(PrefixedSource));
+
+            Assert.Equal("SELECT Text FROM dbo.Prefixed", from.ToString());
+        }
+
+        [Fact]
+        public void FromWithoutPrefixedSourceShouldNotPrependPrefixBeforeTableName()
+        {
+            var from = new Select<DataClass>(c => c.Text).From(typeof(DataClass));
+
+            Assert.Equal("SELECT Text FROM DataClass", from.ToString());
+        }
+
+        [Fact]
+        public void FromWithExplicitPrefixShouldPrependPrefixBeforeTableName()
+        {
+            var from = new Select<DataSource>(c => c.Text).From(prefix: "prefix.");
+
+            Assert.Equal("SELECT Text FROM prefix.DataSourceTable", from.ToString());
         }
     }
 }
