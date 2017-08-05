@@ -14,6 +14,10 @@ namespace QueryBuilder
 
         Type valueType;
 
+        public Where(Expression<Func<T, object>> where)
+            :this("", where, "")
+        { }
+
         private Where(string from, Expression<Func<T, object>> where, string connector = null)
         {
             fromPart = from;
@@ -141,7 +145,7 @@ namespace QueryBuilder
 
         public override string ToString()
         {
-            return $"{fromPart} {connector} {clause}";
+            return $"{fromPart} {connector} {clause}".Trim();
         }
     }
 }

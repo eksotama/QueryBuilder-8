@@ -242,5 +242,13 @@ namespace QueryBuilder.Tests
 
             Assert.Null(ex);
         }
+
+        [Fact]
+        public void ConstructingWhereOnItsOwnShouldConstructClauseWithoutWHERE()
+        {
+            var where = new Where<DataClass>(c => c.Text);
+
+            Assert.Equal("Text", where.ToString());
+        }        
     }
 }
