@@ -1,4 +1,4 @@
-﻿namespace QueryBuilder
+﻿namespace ArLehm.QueryBuilder
 {
     public interface IDataSource
     {

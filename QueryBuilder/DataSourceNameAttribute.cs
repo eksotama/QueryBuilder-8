@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace QueryBuilder
+namespace ArLehm.QueryBuilder
 {
     [AttributeUsage(AttributeTargets.Class)]
     public class DataSourceNameAttribute : Attribute

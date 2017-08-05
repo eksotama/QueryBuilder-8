@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 
-namespace QueryBuilder
+namespace ArLehm.QueryBuilder
 {
     public class From<T>
     {

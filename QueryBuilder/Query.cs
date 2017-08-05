@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
-namespace QueryBuilder
+namespace ArLehm.QueryBuilder
 {
     public static class Query
     {
@@ -14,7 +15,7 @@ namespace QueryBuilder
 
         internal static string GetNameOfDataSourceType(Type datasource)
         {
-            var nameAttribute = datasource.GetCustomAttributes(typeof(DataSourceNameAttribute), false).First();
+            var nameAttribute = datasource.GetTypeInfo().GetCustomAttributes(typeof(DataSourceNameAttribute), false).First();
             return (nameAttribute as DataSourceNameAttribute).Name;
         }
     }

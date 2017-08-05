@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Linq.Expressions;
+using System.Reflection;
 
-namespace QueryBuilder
+namespace ArLehm.QueryBuilder
 {
     public class Select<T>
     {
@@ -35,7 +36,7 @@ namespace QueryBuilder
         {
             prefix = prefix ?? GetSourcePrefix(classType);
             classType = classType ?? typeof(T);
-            if (typeof(IDataSource).IsAssignableFrom(classType))
+            if (typeof(IDataSource).GetTypeInfo().IsAssignableFrom(classType.GetTypeInfo()))
             {
                 return From($"{prefix}{Query.GetNameOfDataSourceType(classType)}");
             }
@@ -47,7 +48,7 @@ namespace QueryBuilder
 
         private static string GetSourcePrefix(Type sourceType)
         {
-            var prefix = sourceType.GetProperty("SourcePrefix")?.GetValue(null, null);
+            var prefix = sourceType.GetTypeInfo().GetDeclaredProperty("SourcePrefix")?.GetValue(null, null);
             return prefix?.ToString() ?? "";
         }
 
