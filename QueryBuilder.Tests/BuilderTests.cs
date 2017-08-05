@@ -52,7 +52,7 @@ namespace QueryBuilder.Tests
         public void SelectWithPropertyShouldReturnCorrectSelectPart(string funcName, string expected)
         {
             var select = new Select<DataSource>(FuncProvider(funcName));
-            
+
             Assert.Equal(expected, select.ToString());
         }
 
@@ -90,10 +90,10 @@ namespace QueryBuilder.Tests
         }
 
         [Theory]
-        [InlineData("value=5" , "WHERE Value = 5")]
-        [InlineData("value>5" , "WHERE Value > 5")]
+        [InlineData("value=5", "WHERE Value = 5")]
+        [InlineData("value>5", "WHERE Value > 5")]
         [InlineData("value>=5", "WHERE Value >= 5")]
-        [InlineData("value<5" , "WHERE Value < 5")]
+        [InlineData("value<5", "WHERE Value < 5")]
         [InlineData("value<=5", "WHERE Value <= 5")]
         [InlineData("value!=5", "WHERE Value != 5")]
         public void SimpleWhereClauseShouldWriteCorrectWhereString(string func, string expected)
@@ -249,6 +249,30 @@ namespace QueryBuilder.Tests
             var where = new Where<DataClass>(c => c.Text);
 
             Assert.Equal("Text", where.ToString());
-        }        
+        }
+
+        [Theory]
+        [InlineData("value=5", "Value = 5")]
+        [InlineData("value>5", "Value > 5")]
+        [InlineData("value>=5", "Value >= 5")]
+        [InlineData("value<5", "Value < 5")]
+        [InlineData("value<=5", "Value <= 5")]
+        [InlineData("value!=5", "Value != 5")]
+        public void ConstructWhereWithoutSelectAndFromShouldConstructCompleteWhereClause(string funcName, string expected)
+        {
+            var where = new Where<DataSource>(FuncProvider(funcName));
+
+            Assert.Equal(expected, where.ToString());
+        }
+
+        [Fact]
+        public void ConstructWhereWithoutFromAndFromWithChainedConditionsShouldConstructCorrectWhereClause()
+        {
+            var where = new Where<DataSource>(c => c.Text)
+                .In(new[] { "a", "b", "c" })
+                .And(c => c.Value < 5);
+
+            Assert.Equal("(Text IN ('a','b','c')) AND Value < 5", where.ToString());
+        }
     }
 }
