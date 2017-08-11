@@ -88,6 +88,21 @@ namespace ArLehm.QueryBuilder
                             clause += value;
                         }
                     }
+                    else if(binary.Right is MemberExpression memberRight)
+                    {
+                        if(memberRight.Expression is ConstantExpression rightConstant)
+                        {
+                            var val = ((FieldInfo)memberRight.Member).GetValue(rightConstant.Value);
+                            if (val.GetType() == typeof(string))
+                            {
+                                clause += $"'{val}'";
+                            }
+                            else
+                            {
+                                clause += $"{val}";
+                            }
+                        }
+                    }
                 }
             }
         }

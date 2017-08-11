@@ -2,6 +2,8 @@
 using System.Linq.Expressions;
 using Xunit;
 using ArLehm.QueryBuilder;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace QueryBuilder.Tests
 {
@@ -46,6 +48,36 @@ namespace QueryBuilder.Tests
                 case "char": return (s) => s.Character;
             }
             throw new ArgumentException("unknown func!");
+        }
+
+        private IEnumerable<string> GetKeys()
+        {
+            yield return "a";
+        }
+
+        private IEnumerable<int> GetValue()
+        {
+            yield return 1;
+        }
+
+        [Fact]
+        public void ExpressionsOnTheRightSideShouldBeResolvedToString()
+        {
+            var key = $"{GetKeys().FirstOrDefault()}.key";
+
+            var where = new Where<DataSource>(s => s.Text == key);
+
+            Assert.Equal("Text = 'a.key'", where.ToString());
+        }
+
+        [Fact]
+        public void ExpressionsOnTheRightSideShouldBeResolvedToNumber()
+        {
+            var key = GetValue().FirstOrDefault();
+
+            var where = new Where<DataSource>(s => s.Value == key);
+
+            Assert.Equal("Value = 1", where.ToString());
         }
 
         [Fact]
