@@ -340,5 +340,13 @@ namespace QueryBuilder.Tests
 
             Assert.Equal("SELECT Text FROM prefix.DataSourceTable", from.ToString());
         }
+
+        [Fact]
+        public void AddingOrderByShouldAppendORDERBYToTheWhereClause()
+        {
+            var where = new Where<DataSource>(x => x.Text == "abc").OrderBy(x => x.Value);
+
+            Assert.Equal("Text = 'abc' ORDER BY Value", where.ToString());
+        }
     }
 }

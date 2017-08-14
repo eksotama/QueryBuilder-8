@@ -158,6 +158,11 @@ namespace ArLehm.QueryBuilder
             return this;
         }
 
+        public OrderBy<T> OrderBy(Expression<Func<T, object>> orderBy)
+        {
+            return new OrderBy<T>(this, orderBy);
+        }
+
         public override string ToString()
         {
             return $"{fromPart} {connector} {clause}".Trim();
