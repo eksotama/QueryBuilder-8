@@ -14,6 +14,8 @@ namespace ArLehm.QueryBuilder
 
         Type valueType;
 
+        private Dictionary<string, string> queryCache = new Dictionary<string, string>();
+
         public Where(Expression<Func<T, object>> where)
             :this("", where, "")
         { }
@@ -22,6 +24,13 @@ namespace ArLehm.QueryBuilder
         {
             fromPart = from;
             this.connector = connector ?? "WHERE";
+
+            if(queryCache.ContainsKey(where.ToString().ToLower()))
+            {
+                clause = queryCache[where.ToString().ToLower()];
+                return;
+            }
+
             if(where.Body is MemberExpression memberEx)
             {
                 clause += memberEx.Member.Name;
@@ -105,6 +114,7 @@ namespace ArLehm.QueryBuilder
                     }
                 }
             }
+            queryCache[where.ToString().ToLower()] = clause;
         }
 
         public Where(From<T> from, Expression<Func<T, object>> where)
