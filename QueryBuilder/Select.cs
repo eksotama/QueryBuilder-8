@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -10,10 +11,17 @@ namespace ArLehm.QueryBuilder
 
         public override string ToString() => clause;
 
+        private Dictionary<string, string> selectCache = new Dictionary<string, string>();
+
         public Select() { }
 
         public Select(Expression<Func<T, object>> select)
         {
+            if(selectCache.ContainsKey(select.ToString().ToLower()))
+            {
+                clause = selectCache[select.ToString().ToLower()];
+                return;
+            }
             if(select.Body is MemberExpression body)
             {
                 clause += body.Member.Name;
@@ -25,6 +33,7 @@ namespace ArLehm.QueryBuilder
                     clause += member.Member.Name;
                 }
             }
+            selectCache[select.ToString().ToLower()] = clause;
         }         
 
         public From<T> From(string table)
