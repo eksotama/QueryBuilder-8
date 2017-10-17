@@ -331,6 +331,30 @@ namespace QueryBuilder.Tests
         }
 
         [Fact]
+        public void WhereInWithMoreThan1800ElementsUsesChunking()
+        {
+            var where = new Where<DataSource>(c => c.Text)
+                .In(Enumerable.Repeat("a", 1801));
+
+            Assert.Equal(3, where.ToString().Count(c => c == '('));
+            Assert.Equal(3, where.ToString().Count(c => c == ')'));
+            Assert.Contains(") OR Text IN (", where.ToString());
+            Assert.EndsWith("OR Text IN ('a')", where.ToString());
+            Assert.Equal(1801, where.ToString().Count(c => c == 'a'));
+        }
+
+        [Fact]
+        public void WhereInWithChunkingAndAddedConditionSetsParensCorrectly()
+        {
+            var where = new Where<DataSource>(c => c.Text)
+                .In(Enumerable.Repeat("a", 1801))
+                .And(c => c.Value > 5);
+
+            Assert.StartsWith("(Text IN ('a'", where.ToString());
+            Assert.EndsWith(") AND Value > 5", where.ToString());
+        }
+
+        [Fact]
         public void FromWithPrefixedSourceShouldPrependPrefixBeforeTableName()
         {
             var from = new Select<PrefixedSource>(p => p.Text).From(typeof(PrefixedSource));
