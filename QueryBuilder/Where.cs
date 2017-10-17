@@ -147,7 +147,7 @@ namespace ArLehm.QueryBuilder
             //where <attribute> in (1,2,3,..., 900) or <attribute> in (901, ..., 1800)
             var chunkStrings = InChunks(values).Select(c => string.Join(",", c.Select(chunked => stringify(chunked))));
 
-            clause += $" IN ({string.Join($") or {attribute} in (", chunkStrings)})";
+            clause += $" IN ({string.Join($") OR {attribute} IN (", chunkStrings)})";
             return this;
         }
 

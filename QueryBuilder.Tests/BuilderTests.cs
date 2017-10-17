@@ -318,6 +318,19 @@ namespace QueryBuilder.Tests
         }
 
         [Fact]
+        public void WhereInWithMoreThan900ElementsUsesChunking()
+        {
+            var where = new Where<DataSource>(c => c.Text)
+                .In(Enumerable.Repeat("a", 901));
+
+            Assert.Equal(2, where.ToString().Count(c => c == '('));
+            Assert.Equal(2, where.ToString().Count(c => c == ')'));
+            Assert.Contains(") OR Text IN (", where.ToString());
+            Assert.EndsWith("OR Text IN ('a')", where.ToString());
+            Assert.Equal(901, where.ToString().Count(c => c == 'a'));
+        }
+
+        [Fact]
         public void FromWithPrefixedSourceShouldPrependPrefixBeforeTableName()
         {
             var from = new Select<PrefixedSource>(p => p.Text).From(typeof(PrefixedSource));
