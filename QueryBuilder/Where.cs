@@ -17,7 +17,7 @@ namespace ArLehm.QueryBuilder
         private Dictionary<string, string> queryCache = new Dictionary<string, string>();
 
         public Where(Expression<Func<T, object>> where)
-            :this("", where, "")
+            : this("", where, "")
         { }
 
         private Where(string from, Expression<Func<T, object>> where, string connector = null)
@@ -25,20 +25,20 @@ namespace ArLehm.QueryBuilder
             fromPart = from;
             this.connector = connector ?? "WHERE";
 
-            if(queryCache.ContainsKey(where.ToString().ToLower()))
+            if (queryCache.ContainsKey(where.ToString().ToLower()))
             {
                 clause = queryCache[where.ToString().ToLower()];
                 return;
             }
 
-            if(where.Body is MemberExpression memberEx)
+            if (where.Body is MemberExpression memberEx)
             {
                 clause += memberEx.Member.Name;
                 valueType = (memberEx.Member as PropertyInfo).PropertyType;
             }
             else if (where.Body is UnaryExpression unary)
             {
-                if(unary.Operand is MemberExpression member)
+                if (unary.Operand is MemberExpression member)
                 {
                     clause += member.Member.Name;
                     valueType = (member.Member as PropertyInfo).PropertyType;
@@ -97,9 +97,9 @@ namespace ArLehm.QueryBuilder
                             clause += value;
                         }
                     }
-                    else if(binary.Right is MemberExpression memberRight)
+                    else if (binary.Right is MemberExpression memberRight)
                     {
-                        if(memberRight.Expression is ConstantExpression rightConstant)
+                        if (memberRight.Expression is ConstantExpression rightConstant)
                         {
                             var val = ((FieldInfo)memberRight.Member).GetValue(rightConstant.Value);
                             if (val.GetType() == typeof(string))
@@ -134,15 +134,34 @@ namespace ArLehm.QueryBuilder
 
         public Where<T> In<TValue>(IEnumerable<TValue> values)
         {
+            Func<TValue, string> stringify = null;
             if (typeof(TValue) == typeof(string))
             {
-                clause += $" IN ({string.Join(",", values.Select(v => $"'{v}'"))})";
+                stringify = v => $"'{v}'";
             }
             else
-            {
-                clause += $" IN ({string.Join(",", values)})";
+            { 
+                stringify = v => v?.ToString() ?? "";
             }
+            var attribute = clause.Split(' ').Last();
+            //where <attribute> in (1,2,3,..., 900) or <attribute> in (901, ..., 1800)
+            var chunkStrings = InChunks(values).Select(c => string.Join(",", c.Select(chunked => stringify(chunked))));
+
+            clause += $" IN ({string.Join($") or {attribute} in (", chunkStrings)})";
             return this;
+        }
+
+        private IEnumerable<IEnumerable<TValue>> InChunks<TValue>(IEnumerable<TValue> values)
+        {
+            var chunkSize = 900;
+            var chunk = values.Take(chunkSize);
+            var taken = 1;
+            while(chunk.Any())
+            {
+                yield return chunk;
+                chunk = values.Skip(taken * chunkSize).Take(chunkSize);
+                taken++;
+            }
         }
 
         public Where<T> NotIn<TValue>(IEnumerable<TValue> values)
@@ -160,7 +179,7 @@ namespace ArLehm.QueryBuilder
 
         public Where<T> Like(string like)
         {
-            if(valueType != typeof(string) && valueType != typeof(char))
+            if (valueType != typeof(string) && valueType != typeof(char))
             {
                 throw new ArgumentException("like can only be used for strings!");
             }
